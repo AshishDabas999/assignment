@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/context/UserContext'; // ✅ import useUser
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const router = useRouter();
+  const { setUser } = useUser(); // ✅ access setUser
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,6 +26,11 @@ export default function LoginPage() {
         setError(data.error || 'Invalid login');
         return;
       }
+
+      // ✅ Fetch user after login to update global context
+      const meRes = await fetch('/api/me');
+      const meData = await meRes.json();
+      setUser(meData.user); // update global state
 
       router.push('/profile');
     } catch (err) {

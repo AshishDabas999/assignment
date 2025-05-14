@@ -1,65 +1,54 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/context/UserContext'; // 👈 import global user hook
 
 export default function Navbar() {
-  const [user, setUser] = useState(null);
+  const { user, setUser, loading } = useUser(); // 👈 use global state
   const router = useRouter();
 
-  // Fetch user data on mount
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/me');
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        setUser(data.user);
-      } catch {
-        setUser(null); // not logged in
-      }
-    };
-    fetchUser();
-  }, []);
-
-  // Handle logout and clear user state
   const handleLogout = async () => {
     try {
       const res = await fetch('/api/logout', { method: 'POST' });
       if (!res.ok) throw new Error('Failed to log out');
-      setUser(null); // Clear user state instantly
-      router.push('/'); // Redirect to homepage
+      setUser(null); // 👈 update global state
+      router.push('/');
+      router.refresh();
     } catch (err) {
       console.error('❌ Logout failed:', err);
     }
   };
 
-  // Handle login and set user state
-  const handleLogin = (userData) => {
-    setUser(userData); // Set the user state immediately after login
-  };
+  if (loading) {
+    return null; // or a loading spinner if needed
+  }
 
   return (
     <nav className="w-full bg-white shadow-md py-4 px-6 flex justify-between items-center">
       <Link href="/" className="text-xl font-bold text-blue-600">RBAC App</Link>
-      <div className="space-x-4">
+      
+      <div className="space-x-4 text-sm font-medium flex items-center">
         {user ? (
           <>
-            <Link href="/profile" className="text-blue-600 hover:underline">
-              {user.name}
-            </Link>
-            <Link href="/articles" className="text-blue-600 hover:underline">
-              My Articles
-            </Link>
-            {user.role === 'ADMIN' && (
-              <Link href="/admin" className="text-red-600 hover:underline">
-                Admin
-              </Link>
+            {(user.role === 'USER' ) && (
+              <>
+                <Link href="/articles" className="text-blue-600 hover:underline">📄 My Articles</Link>
+                <Link href="/articles/new" className="text-green-600 hover:underline">✍️ New Article</Link>
+                <Link href="/profile" className="text-blue-600 hover:underline">{user.name}</Link>
+              </>
             )}
+
+            {user.role === 'ADMIN' && (
+              <>
+                {/* <Link href="/admin" className="text-red-600 hover:underline">🛠️ Admin Dashboard</Link> */}
+                <Link href="/admin/users" className="text-purple-600 hover:underline">👥 Manage Users</Link>
+              </>
+            )}
+
             <button
               onClick={handleLogout}
-              className="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400 text-sm"
+              className="bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300"
             >
               Logout
             </button>

@@ -1,6 +1,8 @@
 // app/layout.js
 import './globals.css';
-import Navbar from '@/components/Navbar'; // adjust path as needed
+import Navbar from '@/components/Navbar';
+import { UserProvider } from '@/context/UserContext';
+
 export const metadata = {
   title: 'RBAC App',
   description: 'Role-based access control with Next.js',
@@ -10,8 +12,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-          <Navbar/>
+        <UserProvider>
+          <Navbar />
           {children}
+        </UserProvider>
       </body>
     </html>
   );
